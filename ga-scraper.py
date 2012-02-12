@@ -1,16 +1,17 @@
 #/usr/bin/python
+# Fairly useless script to find top keywords in top pageviews 
 # GA code - (CC-by) 2010 Copyleft Michal Karzynski, GenomikaStudio.com 
 
 import datetime
 import re
-import urllib2
+from urllib2 import urlopen, URLError
 
 from BeautifulSoup import BeautifulSoup
 import gdata.analytics.client
 import gdata.sample_util
  
 GA_USERNAME="rolls707@gmail.com"  # Set these values
-GA_PASSWORD="xxxxxxx"
+GA_PASSWORD="xxxx"
 GA_PROFILE_ID = 'ga:53043715' # the GA profile ID to query
 GA_SOURCE_APP_NAME = 'FOO BAR'
 sd = datetime.date(2011,12,1)
@@ -24,34 +25,55 @@ gaclient.client_login(
         GA_SOURCE_APP_NAME,
         service='analytics')
 
-query_uri = gdata.analytics.client.DataFeedQuery({
+# get the top ten pageviews		
+pageviewQuery = gdata.analytics.client.DataFeedQuery({
 	'ids': GA_PROFILE_ID,
       	'start-date': sd,
       	'end-date': ed,
-      	'dimensions': 'ga:date',
-      	'metrics': 'ga:visits',
+      	'dimensions': 'ga:pagePath',
+      	'metrics': 'ga:pageviews',
+		'sort':'-ga:pageviews',
+		'max-results':'25',
 })
 
-feed = gaclient.GetDataFeed(query_uri);
+# get the top ten keyword phrases
+kwphrasequery = gdata.analytics.client.DataFeedQuery({
+	'ids': GA_PROFILE_ID,
+      	'start-date': sd,
+      	'end-date': ed,
+      	'dimensions': 'ga:keyword',
+      	'metrics': 'ga:organicSearches',
+		'sort':'-ga:organicSearches',
+		'max-results':'200',
+})
 
+kwfeed = gaclient.GetDataFeed(kwphrasequery);
+feed = gaclient.GetDataFeed(pageviewQuery);
 
-# we'll run through the data feed reutrned from our query
 for entry in feed.entry:
 
-	# build each row of data from the feed
-      	row = []
-
 	for dim in entry.dimension:
-		print dim.value
-
-		for metric in entry.metric:
-			print metric.value
-
-
-page = urllib2.urlopen('http://www.vistaseeker.com')
-
-soup = BeautifulSoup(page)
-print soup.find(text=re.compile('friend'))
-
-
-
+		url = 'http://www.vistaseeker.com' +  dim.value
+		print url
+		try:
+			page = urlopen(url)
+			soup = BeautifulSoup(page)
+	
+			for kwentry in kwfeed.entry:
+				for kw in kwentry.dimension:
+					try:
+						match = soup.findAll(text=re.compile(kw.value))
+						
+						if len(match) > 0 : 
+							print "---------------"
+							print url
+							print 'Keyword: ' + kw.value
+							print 'Matching text: '+ match[0]
+							print "---------------"				
+						
+					except:
+						print 'Error at ' + kw.value
+						
+		except URLError:
+			print 'The server couldn\'t fulfill the request.'
+		
