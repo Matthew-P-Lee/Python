@@ -11,7 +11,7 @@ import gdata.analytics.client
 import gdata.sample_util
  
 GA_USERNAME="rolls707@gmail.com"  # Set these values
-GA_PASSWORD="bigkneez"
+GA_PASSWORD="xxxxxxx"
 GA_PROFILE_ID = 'ga:53043715' # the GA profile ID to query
 GA_SOURCE_APP_NAME = 'FOO BAR'
 sd = datetime.date(2011,11,1)
