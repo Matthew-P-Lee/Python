@@ -11,11 +11,12 @@ import gdata.analytics.client
 import gdata.sample_util
  
 GA_USERNAME="rolls707@gmail.com"  # Set these values
-GA_PASSWORD="xxxx"
+GA_PASSWORD="bigkneez"
 GA_PROFILE_ID = 'ga:53043715' # the GA profile ID to query
 GA_SOURCE_APP_NAME = 'FOO BAR'
-sd = datetime.date(2011,12,1)
+sd = datetime.date(2011,11,1)
 ed = datetime.date(2012,2,6)
+regexstr = "\\b(of|the|in|for|at|to|a|and)\\W"
 
 gaclient = gdata.analytics.client.AnalyticsClient(source=GA_SOURCE_APP_NAME)
 
@@ -44,7 +45,7 @@ kwphrasequery = gdata.analytics.client.DataFeedQuery({
       	'dimensions': 'ga:keyword',
       	'metrics': 'ga:organicSearches',
 		'sort':'-ga:organicSearches',
-		'max-results':'200',
+		'max-results':'10',
 })
 
 kwfeed = gaclient.GetDataFeed(kwphrasequery);
@@ -61,18 +62,24 @@ for entry in feed.entry:
 	
 			for kwentry in kwfeed.entry:
 				for kw in kwentry.dimension:
-					try:
-						match = soup.findAll(text=re.compile(kw.value))
+					
+					pattern = re.compile(regexstr, re.I)
+					cleanedstr = pattern.sub("", kw.value)				
+					
+					for w in cleanedstr.split():
+						if len(w) > 3:
+							try:
+								match = soup.findAll(text=re.compile(w))
 						
-						if len(match) > 0 : 
-							print "---------------"
-							print url
-							print 'Keyword: ' + kw.value
-							print 'Matching text: '+ match[0]
-							print "---------------"				
+								if len(match) > 0 : 
+									print "---------------"
+									print url
+									print 'Keyword: ' + w
+									print 'Matching text: '+ match[0]
+									print "---------------"				
 						
-					except:
-						print 'Error at ' + kw.value
+							except:
+								print 'Error at ' + w
 						
 		except URLError:
 			print 'The server couldn\'t fulfill the request.'
