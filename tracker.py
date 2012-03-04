@@ -53,8 +53,8 @@ class Track:
 			
 #campaign and customer tracker code
 class Tracker:
-	awsKeyId = 'xxxx'
-	awsSecretKey = 'xxxx'
+	awsKeyId = 'AKIAJI4CNC7K6YU2ZRMQ'
+	awsSecretKey = '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'
 	tableName = 'Tracker'
 	trackedrows = {}
 		
@@ -106,7 +106,7 @@ class Tracker:
 		try:
 			table = conn.get_table('Tracker')
 		except:
-			self.CreateTable(self.TableName, conn)
+			table = self.CreateTable(self.tableName, conn)
 			
 		#save off the new record	
 		item = table.new_item(
@@ -122,7 +122,7 @@ class Tracker:
 		
 	#creates a tracking table
 	def CreateTable(self,tablename, conn):
-		if conn is not none:
+		if conn is not None:
 			table_schema = conn.create_schema(
 					hash_key_name='CustomerId',
 					hash_key_proto_value='S',
@@ -131,11 +131,13 @@ class Tracker:
 			)
 		
 			table = conn.create_table(
-				name='Tracker',
+				name=tablename,
 				schema=table_schema,
 				read_units=10,
 				write_units=10
 			)	
+			
+			return table
 	
 if __name__ == "__main__":
     app.run()
