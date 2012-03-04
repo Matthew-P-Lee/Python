@@ -3,7 +3,7 @@ import web
 import uuid
 import boto
 
-#Mappings for web.py and any otherHTTP related stuff
+#Mappings for web.py and any other HTTP related stuff
 urls = (
 	'/', 'Status',
 	'/track', 'Track',
@@ -23,22 +23,28 @@ class Status:
 
 class Track:
 	def GET(self):
-		#get the querystring,We expect ?channel='ppc'&campaign='mycampaign&landingpage=foo.bar.com		
+		#?channel='ppc'&campaign='mycampaign'
 		i = web.input(channel = 'undefined channel',campaign = 'undefined campaign')
+		
+		#handy way to get HTTP environment variables
 		referer = web.ctx.env.get('HTTP_REFERER', 'undefined referer')		
+		
+		#get the custId from the cookie or create a new one
 		custId = self.HandleCookie(str(uuid.uuid1()))
 		#invoke the tracker
 		return Tracker().Track(custId,i.channel,i.campaign,referer)
 	
+	#get/set the master customerId cookie
 	def HandleCookie(self,defaultCookieValue):
-		cookieName = 'bolCustId'		
+		cookieName = 'bolCustId'
+		cookieDuration = 3600
 		
-		#see qif the user has a custId set in a cookie already, 
+		#see if the user has a custId set in a cookie already, 
 		cookie = web.cookies().get(cookieName)					
 				
 		#set it if they dont	
 		if cookie is None:
-			web.setcookie(cookieName,custId,3600)
+			web.setcookie(cookieName,defaultCookieValue,cookieDuration)
 			cookieValue = defaultCookieValue
 		else:
 			cookieValue = str(cookie)			
@@ -47,8 +53,8 @@ class Track:
 			
 #campaign and customer tracker code
 class Tracker:
-	awsKeyId = 'xxx'
-	awsSecretKey = 'xxx'
+	awsKeyId = 'xxxx'
+	awsSecretKey = 'xxxx'
 	tableName = 'Tracker'
 	trackedrows = {}
 		
@@ -91,15 +97,18 @@ class Tracker:
 			'Referer' :referer,
 		}
 
+		#connect to dynamoDb	
 		conn = boto.connect_dynamodb(
 			aws_access_key_id=self.awsKeyId,
 			aws_secret_access_key=self.awsSecretKey)
 			
+		#create a table if one doesn't already exist	
 		try:
 			table = conn.get_table('Tracker')
 		except:
 			self.CreateTable(self.TableName, conn)
 			
+		#save off the new record	
 		item = table.new_item(
 			hash_key=custId,
 			range_key=campaign,
@@ -107,9 +116,11 @@ class Tracker:
 		)
 		
 		item.put()
-			
+		
+		#retrieve and return the item
 		return self.GetByUID(custId,campaign)
-	
+		
+	#creates a tracking table
 	def CreateTable(self,tablename, conn):
 		if conn is not none:
 			table_schema = conn.create_schema(
