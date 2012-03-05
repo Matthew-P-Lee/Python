@@ -53,8 +53,8 @@ class Track:
 			
 #campaign and customer tracker code
 class Tracker:
-	awsKeyId = 'AKIAJI4CNC7K6YU2ZRMQ'
-	awsSecretKey = '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'
+	awsKeyId = 'xxx'
+	awsSecretKey = 'xxx'
 	tableName = 'Tracker'
 	trackedrows = {}
 		
