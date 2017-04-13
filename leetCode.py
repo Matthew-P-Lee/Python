@@ -35,22 +35,14 @@ class Solution_string(object):
 #using bitwise operators
 class Solution(object):
 	def hammingDistance(self,x,y):
-		count = 0
-
 		#do a bitwise OR, if there are any ones, those are the non-matching values
-		xor = bin(int(x) ^ int(y))[2:]			
+		return str.count((bin(int(x) ^ int(y))[2:]),"1")			
 				
-		#iterate each bit after AND
-		for i in range(len(xor)):
-			if (int(xor[i]) == 1): 
-				count += 1
-		
-		return count
   
 #test
 sol = Solution()
 
-x = 100
-y = 40
+x = 1
+y = 4
 
-print sol.hammingDistance(x,y)        
+print sol.hammingDistance(x,y)       #expect 2 
